@@ -1,0 +1,19 @@
+{
+  "name": "Account",
+  "base": "User",
+  "properties": {
+    "ethereumAccountAddress": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
