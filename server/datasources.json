@@ -1,12 +1,8 @@
 {
-  "db": {
-    "name": "db",
-    "connector": "memory"
-  },
   "postgresql": {
     "host": "localhost",
     "port": 5432,
-    "url": "postgres://alchemist:njksdfyuieyui34y@localhost/alchemy",
+    "url": "postgres://alchemist:njksdfyuieyui34y@localhost:5432/alchemy",
     "database": "alchemy",
     "password": "njksdfyuieyui34y",
     "name": "postgresql",
