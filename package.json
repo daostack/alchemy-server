@@ -1,9 +1,10 @@
 {
   "name": "alchemy-server",
+  "description": "Server to store proposal information in a database for the DAOstack Alchemy application.",
   "version": "0.1.0",
   "main": "server/server.js",
   "engines": {
-    "node": ">=4"
+    "node": "9.5"
   },
   "scripts": {
     "lint": "eslint .",
@@ -30,6 +31,5 @@
     "type": "",
     "url": ""
   },
-  "license": "UNLICENSED",
-  "description": "alchemy-server"
+  "license": "GPL-3.0",
 }
