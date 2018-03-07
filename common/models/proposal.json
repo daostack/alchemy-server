@@ -22,12 +22,12 @@
       "type": "string",
       "required": true
     },
-    "title": {
-      "type": "string",
-      "required": true
-    },
     "submittedAt": {
       "type": "number",
+      "required": true
+    },
+    "title": {
+      "type": "string",
       "required": true
     }
   },

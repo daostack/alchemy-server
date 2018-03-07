@@ -5,7 +5,6 @@
     "url": "postgres://alchemist:njksdfyuieyui34y@localhost:5432/alchemy",
     "database": "alchemy",
     "password": "njksdfyuieyui34y",
-    "name": "postgresql",
     "user": "alchemist",
     "connector": "postgresql"
   }
