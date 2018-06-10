@@ -7,8 +7,7 @@
   },
   "properties": {
     "arcId": {
-      "type": "string",
-      "required": true
+      "type": "string"
     },
     "daoAvatarAddress": {
       "type": "string",
@@ -39,5 +38,6 @@
   "validations": [],
   "relations": {},
   "acls": [],
-  "methods": {}
+  "methods": {},
+  "replaceOnPUT": false
 }
