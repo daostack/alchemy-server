@@ -43,7 +43,8 @@
     "public": false
   },
   "Account": {
-    "dataSource": "postgresql"
+    "dataSource": "postgresql",
+    "public": true
   },
   "Proposal": {
     "dataSource": "postgresql",

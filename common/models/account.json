@@ -1,14 +1,23 @@
 {
   "name": "Account",
-  "base": "User",
+  "idInjection": false,
   "properties": {
     "ethereumAccountAddress": {
+      "id": true,
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
       "type": "string"
     },
-    "firstName": {
+    "githubURL": {
       "type": "string"
     },
-    "lastName": {
+    "email": {
       "type": "string"
     }
   },

@@ -7,7 +7,8 @@
 * [Alchemy Client](https://github.com/daostack/alchemy)
 
 ## Installation
-* Setup PostgreSQL with a database called `alchemy`, and a user named `alchemist` with a password of `njksdfyuieyui34y`
+* Setup PostgreSQL with a database called `alchemy`: `CREATE DATABASE alchemy;`
+*   and a user named `alchemist` with a password of `njksdfyuieyui34y`: `CREATE ROLE alchemist with login password 'njksdfyuieyui34y'; GRANT ALL PRIVILEGES ON DATABASE alchemy TO alchemist;`
 * `npm install`
 * `node ./server/create-lb-tables.js`
 * `node ./server/migrate.js`

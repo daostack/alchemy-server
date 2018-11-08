@@ -1,8 +1,18 @@
+var ethUtil = require('ethereumjs-util');
+var sigUtil = require('eth-sig-util');
+
 module.exports = function(Account) {
-  Account.greet = function(msg, cb) {
-    process.nextTick(function() {
-      msg = msg || 'hello';
-      cb(null, 'Sender says ' + msg + ' to receiver');
-    });
-  };
+
+  Account.observe('before save', function(ctx, next) {
+    const text = "Please sign in to Alchemy";
+    const msg = ethUtil.bufferToHex(Buffer.from(text, 'utf8'));
+    const recoveredAddress = sigUtil.recoverPersonalSignature({ data: msg, sig: ctx.instance.signature });
+
+    if (recoveredAddress == ctx.instance.ethereumAccountAddress) {
+      next();
+    } else {
+      next(new Error('Must include valid signature to update your account profile.'))
+    }
+  });
+
 };
