@@ -9,8 +9,9 @@
   "main": "server/server.js",
   "scripts": {
     "lint": "eslint .",
-    "start": "node .",
-    "posttest": "npm run lint && nsp check"
+    "migrate": "node ./server/migrate.js",
+    "posttest": "npm run lint && nsp check",
+    "start": "node ."
   },
   "dependencies": {
     "compression": "^1.7.2",
