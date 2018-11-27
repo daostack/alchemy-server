@@ -7,7 +7,6 @@ module.exports = function(Account) {
     // Check that timestamp is within the last 10 minutes
     const timestamp = parseInt(ctx.instance.timestamp);
     const now = new Date().getTime();
-    console.log((now - timestamp) / 1000);
     if (now - timestamp > 10 * 60 * 1000) {
       next(new Error('Invalid signature'));
       return;
