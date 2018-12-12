@@ -76,7 +76,12 @@ for (var s in config) {
                          (provider == 'twitter' ? "https://twitter.com/" + profile.username : "");
       const name = provider == 'github' || provider == 'twitter' ? profile.displayName :
                    provider == 'facebook' ? profile._json.first_name + " " + profile._json.last_name : " ";
-      var account = (await app.models.Account.findOrCreate({ where: { ethereumAccountAddress: req.session.ethereumAccountAddress }}, { ethereumAccountAddress: req.session.ethereumAccountAddress, name }))[0];
+      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: req.session.ethereumAccountAddress }});
+      if (!account) {
+        account = new app.models.Account();
+        account.ethereumAccountAddress = req.session.ethereumAccountAddress;
+        account.name = name;
+      }
       account.userId = user.id;
       account[provider + "URL"] = profileUrl;
       account.save({ skipSignatureCheck: true });
