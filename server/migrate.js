@@ -1,6 +1,6 @@
 var app = require('./server');
 var ds = app.dataSources.postgresql;
-var appModels = ['Account', 'Proposal'];
+var appModels = ['Account', 'Proposal', 'ApplicationCredential', 'UserCredential', 'UserIdentity'];
 
 ds.isActual(appModels, function(err, actual) {
   if (!actual) {

@@ -13,6 +13,11 @@
 * `node ./server/create-lb-tables.js`
 * `node ./server/migrate.js`
 
+## If you want to use SSL locally (e.g. to test Facebook authentication)
+* `mkdir ./server/private/`
+* Create and install a self-signed certificate locally. We recommend using https://github.com/FiloSottile/mkcert
+* Move the key created to ./server/private/privatekey.pem and the certificate to ./server/private/certificate.pem
+
 # Run app locally
 * `npm run start`
 * Start up the Alchemy Client app

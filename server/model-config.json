@@ -4,7 +4,8 @@
       "loopback/common/models",
       "loopback/server/models",
       "../common/models",
-      "./models"
+      "./models",
+      "../node_modules/loopback-component-passport/lib/models"
     ],
     "mixins": [
       "loopback/common/mixins",
@@ -14,15 +15,37 @@
     ]
   },
   "User": {
-    "dataSource": "postgresql"
+    "dataSource": "postgresql",
+    "relations": {
+      "accessTokens": {
+        "type": "hasMany",
+        "model": "AccessToken",
+        "foreignKey": "userId"
+      },
+      "account": {
+        "type": "hasOne",
+        "model": "Account",
+        "foreignKey": "userId"
+      },
+      "credentials": {
+        "type": "hasMany",
+        "model": "UserCredential",
+        "foreignKey": "userId"
+      },
+      "identities": {
+        "type": "hasMany",
+        "model": "UserIdentity",
+        "foreignKey": "userId"
+      }
+    }
   },
   "AccessToken": {
     "dataSource": "postgresql",
     "public": false,
     "relations": {
-      "Account": {
+      "user": {
         "type": "belongsTo",
-        "model": "Account",
+        "model": "User",
         "foreignKey": "userId"
       }
     }
@@ -49,5 +72,31 @@
   "Proposal": {
     "dataSource": "postgresql",
     "public": true
+  },
+  "ApplicationCredential": {
+    "dataSource": "postgresql",
+    "public": false
+  },
+  "UserCredential": {
+    "dataSource": "postgresql",
+    "public": true,
+    "relations": {
+      "user": {
+        "type": "belongsTo",
+        "model": "User",
+        "foreignKey": "userId"
+      }
+    }
+  },
+  "UserIdentity": {
+    "dataSource": "postgresql",
+    "public": true,
+    "relations": {
+      "user": {
+        "type": "belongsTo",
+        "model": "User",
+        "foreignKey": "userId"
+      }
+    }
   }
 }
