@@ -1,5 +1,7 @@
-module.exports = {
- "facebook-login": {
+const providers = {};
+
+if (process.env.FACEBOOK_APP_ID) {
+  providers['facebook-login'] = {
    "provider": "facebook",
    "module": "passport-facebook",
    "clientID": process.env.FACEBOOK_APP_ID,
@@ -10,8 +12,11 @@ module.exports = {
    "successRedirect": "/",
    "scope": ["email", "user_link"],
    "profileFields": ["link", "locale", "name", "timezone", "verified", "email", "updated_time"]
-  },
-  "twitter-login": {
+  };
+}
+
+if (process.env.TWITTER_CONSUMER_KEY) {
+  providers['twitter-login'] = {
     "provider": "twitter",
     "authScheme": "oauth",
     "module": "passport-twitter",
@@ -24,8 +29,11 @@ module.exports = {
     "consumerSecret": process.env.TWITTER_CONSUMER_SECRET,
     "failureFlash": false,
     "callbackHTTPMethod": "get"
-  },
-  "github-login": {
+  };
+}
+
+if (process.env.GITHUB_CLIENT_ID) {
+  providers["github-login"] = {
     "provider": "github",
     "authScheme": "oauth",
     "module": "passport-github",
@@ -39,5 +47,7 @@ module.exports = {
     "failureFlash": false,
     "callbackHTTPMethod": "get",
     "scope": ["email", "profile"]
-  }
-};
+  };
+}
+
+module.exports = providers;
