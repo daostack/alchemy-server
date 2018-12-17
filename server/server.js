@@ -45,10 +45,13 @@ app.middleware('auth', loopback.token({
 }));
 
 app.middleware('session:before', cookieParser(app.get('cookieSecret')));
-app.middleware('session', session({
+
+var RedisStore = require('connect-redis')(session);
+app.middleware("session", session({
+  store: new RedisStore({ url: process.env.REDIS_URL || "redis://127.0.0.1:6379" }),
   secret: process.env.SESSION_SECRET,
   saveUninitialized: true,
-  resave: true,
+  resave: true
 }));
 
 passportConfigurator.init();
