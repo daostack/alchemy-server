@@ -84,6 +84,7 @@ for (var s in config) {
       }
       account.userId = user.id;
       account[provider + "URL"] = profileUrl;
+      // Skip signature check because this all happening on the server with no client interaction so we dont have or need a signature
       account.save({ skipSignatureCheck: true });
 
       // Tell the client we are done so it can close the popup window
