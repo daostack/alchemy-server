@@ -1,12 +1,14 @@
 const providers = {};
 
+const base_url = process.env.BASE_URL || "";
+
 if (process.env.FACEBOOK_APP_ID) {
   providers['facebook-login'] = {
    "provider": "facebook",
    "module": "passport-facebook",
    "clientID": process.env.FACEBOOK_APP_ID,
    "clientSecret": process.env.FACEBOOK_APP_SECRET,
-   "callbackURL": "/auth/facebook/callback",
+   "callbackURL": base_url + "/auth/facebook/callback",
    "authPath": "/auth/facebook",
    "callbackPath": "/auth/facebook/callback",
    "successRedirect": "/",
@@ -20,7 +22,7 @@ if (process.env.TWITTER_CONSUMER_KEY) {
     "provider": "twitter",
     "authScheme": "oauth",
     "module": "passport-twitter",
-    "callbackURL": "/auth/twitter/callback",
+    "callbackURL": base_url + "/auth/twitter/callback",
     "authPath": "/auth/twitter",
     "callbackPath": "/auth/twitter/callback",
     "successRedirect": "/",
@@ -37,7 +39,7 @@ if (process.env.GITHUB_CLIENT_ID) {
     "provider": "github",
     "authScheme": "oauth",
     "module": "passport-github",
-    "callbackURL": "/auth/github/callback",
+    "callbackURL": base_url + "/auth/github/callback",
     "authPath": "/auth/github",
     "callbackPath": "/auth/github/callback",
     "successRedirect": "/",

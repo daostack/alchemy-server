@@ -123,16 +123,33 @@ app.middleware('session:after', function addSocketIdtoSession(req, res, next) {
   next();
 });
 
-// Check for local SSL certificate
-let privateKey, certificate, useHTTPS = false;
-try {
-  privateKey = fs.readFileSync(path.join(__dirname, './private/privatekey.pem')).toString();
-  certificate = fs.readFileSync(path.join(__dirname, './private/certificate.pem')).toString();
-  useHTTPS = true;
-} catch(e) {}
-
 app.start = function() {
-  var server = null;
+  if (process.env.NODE_ENV == 'production') {
+    app.use(function (req, res, next) {
+      res.setHeader('Strict-Transport-Security', 'max-age=8640000; includeSubDomains');
+      if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === "http") {
+        return res.redirect(301, 'https://' + req.host + req.url);
+      } else {
+        return next();
+      }
+    });
+
+    return app.listen(app.get('port'), function() {
+      app.emit('started');
+      var baseUrl = app.get('url').replace(/\/$/, '');
+      console.log('LoopBack server listening at: %s', baseUrl);
+    });
+  }
+
+  // Local dev, check for a local SSL certificate and if found use https
+  let privateKey, certificate, server, useHTTPS = false;
+
+  try {
+    privateKey = fs.readFileSync(path.join(__dirname, './private/privatekey.pem')).toString();
+    certificate = fs.readFileSync(path.join(__dirname, './private/certificate.pem')).toString();
+    useHTTPS = true;
+  } catch(e) {}
+
   if (useHTTPS) {
     var options = {
       key: privateKey,
@@ -142,6 +159,7 @@ app.start = function() {
   } else {
     server = http.createServer(app);
   }
+
   server.listen(app.get('port'), function() {
     var baseUrl = (useHTTPS ? 'https://' : 'http://') + app.get('host') + ':' + app.get('port');
     app.emit('started', baseUrl);
