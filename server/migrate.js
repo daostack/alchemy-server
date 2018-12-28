@@ -8,8 +8,8 @@ ds.isActual(appModels, function(err, actual) {
       if (err){
         throw (err);
       }
+      console.log('autoupdate done!')
       process.exit(0);
     });
   }
-  process.exit(0);
 });
