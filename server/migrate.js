@@ -3,7 +3,11 @@ var ds = app.dataSources.postgresql;
 var appModels = ['Account', 'Proposal', 'ApplicationCredential', 'UserCredential', 'UserIdentity'];
 
 ds.isActual(appModels, function(err, actual) {
-  if (!actual) {
+  if (actual) {
+    console.log('No migration needed')
+    ds.disconnect();
+    process.exit(0);
+  } else {
     ds.autoupdate(appModels, function(err) {
       if (err){
         throw (err);
@@ -14,7 +18,3 @@ ds.isActual(appModels, function(err, actual) {
     });
   }
 });
-
-console.log('No migration needed')
-ds.disconnect();
-process.exit(0);
