@@ -9,7 +9,12 @@ ds.isActual(appModels, function(err, actual) {
         throw (err);
       }
       console.log('autoupdate done!')
+      ds.disconnect();
       process.exit(0);
     });
   }
 });
+
+console.log('No migration needed')
+ds.disconnect();
+process.exit(0);
