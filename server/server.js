@@ -11,26 +11,23 @@ var http = require('http');
 var https = require('https');
 var loopback = require('loopback');
 var path = require('path');
+var passport = require('passport');
 var session = require('express-session');
 var socketio = require('socket.io');
 
 var app = module.exports = loopback();
 
-// Create an instance of PassportConfigurator with the app instance
-var PassportConfigurator = require('loopback-component-passport').PassportConfigurator;
-var passportConfigurator = new PassportConfigurator(app);
-
-// attempt to build the providers/passport config
-var config = {};
-try {
-  config = require('../providers.js');
-} catch (err) {
-  console.trace(err);
-  process.exit(1); // fatal
-}
-
 // boot scripts mount components like REST API
 boot(app, __dirname);
+
+// enable cors
+var corsOption = {
+  origin: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  credentials: true,
+  exposedHeaders: ['x-auth-token']
+};
+app.use(cors(corsOption));
 
 // to support JSON-encoded bodies
 app.middleware('parse', bodyParser.json());
@@ -44,8 +41,6 @@ app.middleware('auth', loopback.token({
   model: app.models.AccessToken,
 }));
 
-app.middleware('session:before', cookieParser(app.get('cookieSecret')));
-
 var RedisStore = require('connect-redis')(session);
 app.middleware("session", session({
   store: new RedisStore({ url: process.env.REDIS_URL || "redis://127.0.0.1:6379" }),
@@ -53,6 +48,39 @@ app.middleware("session", session({
   saveUninitialized: true,
   resave: true
 }));
+
+app.middleware('session:before', cookieParser(app.get('cookieSecret')));
+
+app.middleware('session:after', function addAccountAddressToSession(req, res, next) {
+  if (req.query.ethereumAccountAddress) {
+    req.session.ethereumAccountAddress = req.query.ethereumAccountAddress;
+  }
+  // req.session.loginNonce = Math.floor(Math.random() * 1000000);
+  // console.log("setting nonce for ", req.session.id, req.session.loginNonce);
+  // EthereumStrategy.setnonce(req.session.id, req.session.loginNonce);
+  next();
+});
+
+app.middleware('session:after', function addSocketIdtoSession(req, res, next) {
+  if (req.query.socketId) {
+    req.session.socketId = req.query.socketId;
+  }
+  next();
+});
+
+// Setup Passport
+var PassportConfigurator = require('loopback-component-passport').PassportConfigurator;
+var passportConfigurator = new PassportConfigurator(app);
+var EthereumStrategy = require('./passport-ethereum');
+
+// attempt to build the providers/passport config
+var config = {};
+try {
+  config = require('../providers.js');
+} catch (err) {
+  console.trace(err);
+  process.exit(1); // fatal
+}
 
 passportConfigurator.init();
 
@@ -100,28 +128,37 @@ for (var s in config) {
   passportConfigurator.configureProvider(s, c);
 }
 
-// enable cors
-var corsOption = {
-  origin: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  credentials: true,
-  exposedHeaders: ['x-auth-token']
-};
-app.use(cors(corsOption));
-
-app.middleware('session:after', function addAccountAddressToSession(req, res, next) {
-  if (req.query.ethereumAccountAddress) {
-    req.session.ethereumAccountAddress = req.query.ethereumAccountAddress;
+// Add our Ethereum strategy for authenticating by signing a message on the client
+const ethStrategy = new EthereumStrategy(
+  function(address, done) {
+    console.log("eth strategy", address, done);
+    User.findOne({ username: address }, function (err, user) {
+      console.log("loooking for user", err, user);
+      if (err) { return done(err); }
+      if (!user) { return done(null, false); }
+      return done(null, user);
+    });
   }
-  next();
-});
+);
 
-app.middleware('session:after', function addSocketIdtoSession(req, res, next) {
-  if (req.query.socketId) {
-    req.session.socketId = req.query.socketId;
+passport.use(ethStrategy);
+
+app.get('/nonce',
+  async function(req, res) {
+    // TODO: require ethereumAccountAddress
+    const nonce = await app.models.Account.getAddressNonce(req.query.address);
+    console.log("getting nonce for address ", req.query.address, nonce);
+    res.send(nonce);
   }
-  next();
-});
+);
+
+app.post('/loginByEthSign',
+  passport.authenticate('ethereum', { failureRedirect: '/login' }),
+  function(req, res) {
+    console.log("successful login", req);
+    res.redirect('/');
+  }
+);
 
 app.start = function() {
   if (process.env.NODE_ENV == 'production') {

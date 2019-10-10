@@ -28,6 +28,9 @@
     },
     "userId": {
       "type": "string"
+    },
+    "loginNonce": {
+      "type": "string"
     }
   },
   "validations": [],

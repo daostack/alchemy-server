@@ -1,3 +1,8 @@
 {
-  "extends": "loopback"
+  "extends": "loopback",
+  "rules": {
+    "max-len": "off",
+    "object-curly-spacing": ["error", "always"],
+    "padded-blocks": "off"
+  }
 }

@@ -1,7 +1,66 @@
+'use strict';
+
 var ethUtil = require('ethereumjs-util');
 var sigUtil = require('eth-sig-util');
 
 module.exports = function(Account) {
+
+  Account.getAddressNonce = async function(address, cb) {
+    let account = await Account.findOne({ where: { address } });
+    if (!account) {
+      account = new Account();
+      account.ethereumAccountAddress = address;
+    }
+    if (!account.loginNonce) {
+      account.loginNonce = Math.floor(Math.random() * 1000000);
+      account.save({ skipSignatureCheck: true });
+    }
+    return account.loginNonce;
+  };
+
+  Account.remoteMethod(
+    'getNonce', {
+      http: {
+        path: '/getNonce',
+        verb: 'get',
+      },
+      accepts: {
+        arg: 'address',
+        type: 'string',
+      },
+      returns: {
+        arg: 'nonce',
+        type: 'string',
+      },
+    }
+  );
+
+  Account.login = function(address, signature, cb) {
+    Account.findOne({ where: { address } }, (err, instance) => {
+      if (instance) {
+        cb(null, "Success!");
+      } else {
+        cb("Broken");
+      }
+    });
+  };
+
+  Account.remoteMethod(
+    'login', {
+      http: {
+        path: '/login',
+        verb: 'post',
+      },
+      accepts: {
+        arg: 'address',
+        type: 'string',
+      },
+      returns: {
+        arg: 'nonce',
+        type: 'string',
+      },
+    }
+  );
 
   Account.observe('before save', function(ctx, next) {
     if (ctx.options.skipSignatureCheck) {
@@ -24,7 +83,7 @@ module.exports = function(Account) {
       if (recoveredAddress == data.ethereumAccountAddress) {
         next();
       } else {
-        next(new Error('Must include valid signature to update your account profile.'))
+        next(new Error('Must include valid signature to update your account profile.'));
       }
     }
   });
