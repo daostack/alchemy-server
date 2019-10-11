@@ -14,6 +14,7 @@ var path = require('path');
 var passport = require('passport');
 var session = require('express-session');
 var socketio = require('socket.io');
+var utils = require('./utils');
 
 var app = module.exports = loopback();
 
@@ -130,13 +131,40 @@ for (var s in config) {
 
 // Add our Ethereum strategy for authenticating by signing a message on the client
 const ethStrategy = new EthereumStrategy(
-  function(address, done) {
-    console.log("eth strategy", address, done);
-    User.findOne({ username: address }, function (err, user) {
-      console.log("loooking for user", err, user);
+  { passReqToCallback: true},
+  function (req, address, done) {
+    console.log("got req", req);
+    const password = utils.generateKey('password');
+    console.log("eth strategy callback", address, password, done);
+    app.models.User.findOrCreate({ username: address }, { username: address, emailVerified: true, password, email: address + "@daostack.loopback" }, function (err, user) {
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
-      return done(null, user);
+      console.log("got user", err, user.id);
+      var login = function(creds) {
+        console.log("will login", creds);
+        app.models.User.login(creds, 'user',
+          function(err, accessToken) {
+            if (err) {
+              console.log("login zerror", err);
+              return err.code === 'LOGIN_FAILED' ?
+                done(null, false, { message: 'Failed to create token.' }) :
+                done(err);
+            }
+            if (accessToken) {
+              // var userProfile = {
+              //   id: user.id,
+              //   accessToken: accessToken
+              // };
+              console.log("got access token", accessToken);
+              done(null, user, { accessToken: accessToken.id });
+            } else {
+              console.log("login failed token");
+              done(null, false, { message: 'Failed to create token.' });
+            }
+          });
+      };
+      login({ username: address, password });
+      //return done(null, user);
     });
   }
 );
@@ -153,10 +181,10 @@ app.get('/nonce',
 );
 
 app.post('/loginByEthSign',
-  passport.authenticate('ethereum', { failureRedirect: '/login' }),
+  passport.authenticate('ethereum'),
   function(req, res) {
-    console.log("successful login", req);
-    res.redirect('/');
+    console.log("successful login", req.authInfo.accessToken);
+    res.json({ token: req.authInfo.accessToken });
   }
 );
 

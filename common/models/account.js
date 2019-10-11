@@ -6,15 +6,20 @@ var sigUtil = require('eth-sig-util');
 module.exports = function(Account) {
 
   Account.getAddressNonce = async function(address, cb) {
-    let account = await Account.findOne({ where: { address } });
+    console.log('yoyo', address);
+    let account = await Account.findOne({ where: { ethereumAccountAddress: address } });
+    console.log("mojo", account);
     if (!account) {
+      console.log("new account");
       account = new Account();
       account.ethereumAccountAddress = address;
     }
+    // TODO: always generate new nonce?
     if (!account.loginNonce) {
+      console.log("add nonce");
       account.loginNonce = Math.floor(Math.random() * 1000000);
-      account.save({ skipSignatureCheck: true });
     }
+    account.save({ skipSignatureCheck: true });
     return account.loginNonce;
   };
 

@@ -54,10 +54,12 @@ function lookup(obj, field) {
  * @api public
  */
 function Strategy(options, postVerifyGetInfo) {
+  console.log("opt func", options, postVerifyGetInfo);
 
   if (typeof options == 'function') {
     postVerifyGetInfo = options;
     options = {};
+    console.log("opt func");
   }
   //if (!postVerifyInfo) { throw new TypeError('LocalStrategy requires a verify callback'); }
 
@@ -141,14 +143,14 @@ console.log("passport authenticate fail");
   function verified(err, user, info) {
     if (err) { return self.error(err); }
     if (!user) { return self.fail(info); }
-    console.log("passport auth success");
+    console.log("passport auth success", user, info);
     self.success(user, info);
   }
 
   try {
     if (self._passReqToCallback) {
       console.log("passport verify callback");
-      this.verify(req, nonce, address, signature, verified);
+      this.verify(req, sessionID, nonce, address, signature, verified);
     } else {
       console.log("passport verify");
       this.verify(sessionID, nonce, address, signature, verified);
@@ -167,18 +169,13 @@ console.log("passport authenticate fail");
  * @param {Function} verified
  * @api protected
  */
-Strategy.prototype.verify = function(session, nonce, address, signature, verified) {
+Strategy.prototype.verify = function(req, session, nonce, address, signature, verified) {
   var sessionID;
   if (typeof session == 'Object') {
     sessionID = session.id;
   } else {
     sessionID = session;
   }
-
-  // do not need to surround in try, catch because caller does that
-  // var jsonData = JSON.parse(payload);
-  // var checkAddress = jsonData.address.toLowerCase();
-  // var checkNonce = jsonData.nonce;
 
   if (nonce != this._nonce[sessionID]) {
     console.log("bad nonce");
@@ -198,7 +195,7 @@ Strategy.prototype.verify = function(session, nonce, address, signature, verifie
   }
   if (this._postVerifyGetInfo) {
     console.log("post verify info");
-    this._postVerifyGetInfo(address, verified);
+    this._postVerifyGetInfo(req, address, verified);
   } else {
     console.log("auth successful!");
     verified(null, address, 'Authentication successful');
