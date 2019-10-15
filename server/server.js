@@ -56,9 +56,6 @@ app.middleware('session:after', function addAccountAddressToSession(req, res, ne
   if (req.query.ethereumAccountAddress) {
     req.session.ethereumAccountAddress = req.query.ethereumAccountAddress;
   }
-  // req.session.loginNonce = Math.floor(Math.random() * 1000000);
-  // console.log("setting nonce for ", req.session.id, req.session.loginNonce);
-  // EthereumStrategy.setnonce(req.session.id, req.session.loginNonce);
   next();
 });
 
@@ -95,6 +92,7 @@ for (var s in config) {
   c.session = c.session !== false;
 
   // After successful OAuth login let's save account data to the database
+  // TODO: need to test the account linking on staging still
   c.loginCallback = function(req, done) {
     return async function(err, user, identity, token) {
       var authInfo = {
@@ -133,38 +131,35 @@ for (var s in config) {
 const ethStrategy = new EthereumStrategy(
   { passReqToCallback: true},
   function (req, address, done) {
-    console.log("got req", req);
     const password = utils.generateKey('password');
-    console.log("eth strategy callback", address, password, done);
-    app.models.User.findOrCreate({ username: address }, { username: address, emailVerified: true, password, email: address + "@daostack.loopback" }, function (err, user) {
+    app.models.User.findOrCreate({ username: address }, { username: address, emailVerified: true, password, email: address + "@daostack.loopback" }, async function (err, user) {
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
-      console.log("got user", err, user.id);
-      var login = function(creds) {
-        console.log("will login", creds);
-        app.models.User.login(creds, 'user',
-          function(err, accessToken) {
-            if (err) {
-              console.log("login zerror", err);
-              return err.code === 'LOGIN_FAILED' ?
-                done(null, false, { message: 'Failed to create token.' }) :
-                done(err);
-            }
-            if (accessToken) {
-              // var userProfile = {
-              //   id: user.id,
-              //   accessToken: accessToken
-              // };
-              console.log("got access token", accessToken);
-              done(null, user, { accessToken: accessToken.id });
-            } else {
-              console.log("login failed token");
-              done(null, false, { message: 'Failed to create token.' });
-            }
-          });
-      };
-      login({ username: address, password });
-      //return done(null, user);
+
+      // Connect user to account
+      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: address }});
+      // TODO: what if can't find?? That would be weird
+      account.userId = user.id;
+      account.save();
+
+      user.accessTokens.create(
+        {
+          created: new Date(),
+          ttl: Math.min(
+            user.constructor.settings.ttl,
+            user.constructor.settings.maxTTL
+          ),
+        },
+        function(err, token) {
+          if (err) {
+            console.error("Login error", err);
+            return err.code === 'LOGIN_FAILED' ?
+              done(null, false, { message: 'Failed to create token.' }) :
+              done(err);
+          }
+          done(err, user, { accessToken: token.id });
+        }
+      );
     });
   }
 );
@@ -173,9 +168,7 @@ passport.use(ethStrategy);
 
 app.get('/nonce',
   async function(req, res) {
-    // TODO: require ethereumAccountAddress
     const nonce = await app.models.Account.getAddressNonce(req.query.address);
-    console.log("getting nonce for address ", req.query.address, nonce);
     res.send(nonce);
   }
 );
@@ -183,7 +176,7 @@ app.get('/nonce',
 app.post('/loginByEthSign',
   passport.authenticate('ethereum'),
   function(req, res) {
-    console.log("successful login", req.authInfo.accessToken);
+    console.log("Successful login");
     res.json({ token: req.authInfo.accessToken });
   }
 );

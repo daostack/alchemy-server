@@ -3,8 +3,8 @@
   "idInjection": false,
   "properties": {
     "ethereumAccountAddress": {
-      "id": true,
       "type": "string",
+      "id": true,
       "required": true
     },
     "description": {
@@ -40,6 +40,13 @@
       "foreignKey": "userId"
     }
   },
-  "acls": [],
+  "acls": [
+    {
+      "accessType": "WRITE",
+      "principalType": "ROLE",
+      "principalId": "$unauthenticated",
+      "permission": "DENY"
+    }
+  ],
   "methods": {}
 }

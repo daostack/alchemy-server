@@ -54,12 +54,9 @@ function lookup(obj, field) {
  * @api public
  */
 function Strategy(options, postVerifyGetInfo) {
-  console.log("opt func", options, postVerifyGetInfo);
-
   if (typeof options == 'function') {
     postVerifyGetInfo = options;
     options = {};
-    console.log("opt func");
   }
   //if (!postVerifyInfo) { throw new TypeError('LocalStrategy requires a verify callback'); }
 
@@ -95,7 +92,6 @@ util.inherits(Strategy, passport.Strategy);
  * @api protected
  */
 Strategy.prototype.setnonce = function(sessionID, nonce) {
-  console.log("passport set nonce", sessionID, nonce);
   this._nonce[sessionID] = nonce;
 };
 
@@ -122,37 +118,29 @@ Strategy.prototype.authenticate = function(req, options) {
   var signature = lookup(req.body, this._signatureField) || lookup(req.query, this._signatureField);
   var sessionID = req.sessionID;
 
-  console.log("passport authenticate", nonce, address, signature, sessionID);
-
   if (!nonce || !address || !signature) {
-console.log("passport authenticate fail");
     return this.fail({ message: options.badRequestMessage || 'Missing credentials' }, 400);
   }
 
   var self = this;
 
   if (!sessionID && !self._passReqToCallback) {
-    console.log('passport authenticate fail2');
     return this.fail({ message: options.badRequestMessage || 'Missing credentials' }, 400);
   }
 
-  // console.log("setting nonce for ", req.session.id, req.session.loginNonce);
-  // TODO: this is a weird place to do this
+  // TODO: is this the right place to do this?
   this.setnonce(sessionID, nonce);
 
   function verified(err, user, info) {
     if (err) { return self.error(err); }
     if (!user) { return self.fail(info); }
-    console.log("passport auth success", user, info);
     self.success(user, info);
   }
 
   try {
     if (self._passReqToCallback) {
-      console.log("passport verify callback");
       this.verify(req, sessionID, nonce, address, signature, verified);
     } else {
-      console.log("passport verify");
       this.verify(sessionID, nonce, address, signature, verified);
     }
   } catch (ex) {
@@ -178,7 +166,6 @@ Strategy.prototype.verify = function(req, session, nonce, address, signature, ve
   }
 
   if (nonce != this._nonce[sessionID]) {
-    console.log("bad nonce");
     verified(null, null, 'The nonce given is not the nonce for this session');
     return;
   }
@@ -189,15 +176,13 @@ Strategy.prototype.verify = function(req, session, nonce, address, signature, ve
   var returnAddress = sigUtil.recoverPersonalSignature({ 'data': msgToVerify, 'sig': signature });
 
   if (returnAddress != address) {
-    console.log("wrong address");
     verified(null, null, 'The address did not match the signature');
     return;
   }
+
   if (this._postVerifyGetInfo) {
-    console.log("post verify info");
     this._postVerifyGetInfo(req, address, verified);
   } else {
-    console.log("auth successful!");
     verified(null, address, 'Authentication successful');
   }
 };
