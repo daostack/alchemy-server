@@ -58,7 +58,7 @@ function Strategy(options, postVerifyGetInfo) {
     postVerifyGetInfo = options;
     options = {};
   }
-  //if (!postVerifyInfo) { throw new TypeError('LocalStrategy requires a verify callback'); }
+  // if (!postVerifyInfo) { throw new TypeError('LocalStrategy requires a verify callback'); }
 
   if (options == null) {
     options = {};

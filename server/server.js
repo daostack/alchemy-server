@@ -5,8 +5,8 @@ require('dotenv').config();
 var bodyParser = require('body-parser');
 var boot = require('loopback-boot');
 var cookieParser = require('cookie-parser');
-var cors = require("cors");
-var fs = require("fs");
+var cors = require('cors');
+var fs = require('fs');
 var http = require('http');
 var https = require('https');
 var loopback = require('loopback');
@@ -26,7 +26,7 @@ var corsOption = {
   origin: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   credentials: true,
-  exposedHeaders: ['x-auth-token']
+  exposedHeaders: ['x-auth-token'],
 };
 app.use(cors(corsOption));
 
@@ -43,11 +43,11 @@ app.middleware('auth', loopback.token({
 }));
 
 var RedisStore = require('connect-redis')(session);
-app.middleware("session", session({
-  store: new RedisStore({ url: process.env.REDIS_URL || "redis://127.0.0.1:6379" }),
+app.middleware('session', session({
+  store: new RedisStore({ url: process.env.REDIS_URL || 'redis://127.0.0.1:6379' }),
   secret: process.env.SESSION_SECRET,
   saveUninitialized: true,
-  resave: true
+  resave: true,
 }));
 
 app.middleware('session:before', cookieParser(app.get('cookieSecret')));
@@ -85,7 +85,7 @@ passportConfigurator.init();
 passportConfigurator.setupModels({
   userModel: app.models.User,
   userIdentityModel: app.models.UserIdentity,
-  userCredentialModel: app.models.UserCredential
+  userCredentialModel: app.models.UserCredential,
 });
 for (var s in config) {
   var c = config[s];
@@ -101,19 +101,20 @@ for (var s in config) {
       if (token) {
         authInfo.accessToken = token;
       }
-      const profile = identity.profile, provider = identity.provider;
+      const profile = identity.profile;
+      const provider = identity.provider;
       const profileUrl = provider == 'github' || provider == 'facebook' ? profile.profileUrl :
-                         (provider == 'twitter' ? "https://twitter.com/" + profile.username : "");
+                         (provider == 'twitter' ? 'https://twitter.com/' + profile.username : '');
       const name = provider == 'github' || provider == 'twitter' ? profile.displayName :
-                   provider == 'facebook' ? profile._json.first_name + " " + profile._json.last_name : " ";
-      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: req.session.ethereumAccountAddress }});
+                   provider == 'facebook' ? profile._json.first_name + ' ' + profile._json.last_name : ' ';
+      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: req.session.ethereumAccountAddress } });
       if (!account) {
         account = new app.models.Account();
         account.ethereumAccountAddress = req.session.ethereumAccountAddress;
         account.name = name;
       }
       account.userId = user.id;
-      account[provider + "URL"] = profileUrl;
+      account[provider + 'URL'] = profileUrl;
       // Skip signature check because this all happening on the server with no client interaction so we dont have or need a signature
       account.save({ skipSignatureCheck: true });
 
@@ -129,15 +130,15 @@ for (var s in config) {
 
 // Add our Ethereum strategy for authenticating by signing a message on the client
 const ethStrategy = new EthereumStrategy(
-  { passReqToCallback: true},
-  function (req, address, done) {
+  { passReqToCallback: true },
+  function(req, address, done) {
     const password = utils.generateKey('password');
-    app.models.User.findOrCreate({ username: address }, { username: address, emailVerified: true, password, email: address + "@daostack.loopback" }, async function (err, user) {
+    app.models.User.findOrCreate({ username: address }, { username: address, emailVerified: true, password, email: address + '@daostack.loopback' }, async function(err, user) {
       if (err) { return done(err); }
       if (!user) { return done(null, false); }
 
       // Connect user to account
-      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: address }});
+      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: address } });
       // TODO: what if can't find?? That would be weird
       account.userId = user.id;
       account.save();
@@ -152,7 +153,7 @@ const ethStrategy = new EthereumStrategy(
         },
         function(err, token) {
           if (err) {
-            console.error("Login error", err);
+            console.error('Login error', err);
             return err.code === 'LOGIN_FAILED' ?
               done(null, false, { message: 'Failed to create token.' }) :
               done(err);
@@ -176,16 +177,16 @@ app.get('/nonce',
 app.post('/loginByEthSign',
   passport.authenticate('ethereum'),
   function(req, res) {
-    console.log("Successful login");
+    console.log('Successful login');
     res.json({ token: req.authInfo.accessToken });
   }
 );
 
 app.start = function() {
   if (process.env.NODE_ENV == 'production') {
-    app.use(function (req, res, next) {
+    app.use(function(req, res, next) {
       res.setHeader('Strict-Transport-Security', 'max-age=8640000; includeSubDomains');
-      if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === "http") {
+      if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === 'http') {
         return res.redirect(301, 'https://' + req.host + req.url);
       } else {
         return next();
@@ -206,12 +207,12 @@ app.start = function() {
     privateKey = fs.readFileSync(path.join(__dirname, './private/privatekey.pem')).toString();
     certificate = fs.readFileSync(path.join(__dirname, './private/certificate.pem')).toString();
     useHTTPS = true;
-  } catch(e) {}
+  } catch (e) {}
 
   if (useHTTPS) {
     var options = {
       key: privateKey,
-      cert: certificate
+      cert: certificate,
     };
     server = https.createServer(options, app);
   } else {

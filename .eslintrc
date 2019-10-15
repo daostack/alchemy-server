@@ -3,6 +3,10 @@
   "rules": {
     "max-len": "off",
     "object-curly-spacing": ["error", "always"],
-    "padded-blocks": "off"
+    "padded-blocks": "off",
+    "one-var": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2017
   }
 }
