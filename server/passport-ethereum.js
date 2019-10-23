@@ -91,7 +91,7 @@ util.inherits(Strategy, passport.Strategy);
  * @param {String} nonce
  * @api protected
  */
-Strategy.prototype.setnonce = function(sessionID, nonce) {
+Strategy.prototype.setNonce = function(sessionID, nonce) {
   this._nonce[sessionID] = nonce;
 };
 
@@ -101,7 +101,7 @@ Strategy.prototype.setnonce = function(sessionID, nonce) {
  * @param {String} sessionId
  * @api protected
  */
-Strategy.prototype.deletenonce = function(sessionID) {
+Strategy.prototype.deleteNonce = function(sessionID) {
   delete this._nonce[sessionID];
 };
 
@@ -127,9 +127,6 @@ Strategy.prototype.authenticate = function(req, options) {
   if (!sessionID && !self._passReqToCallback) {
     return this.fail({ message: options.badRequestMessage || 'Missing credentials' }, 400);
   }
-
-  // TODO: is this the right place to do this?
-  this.setnonce(sessionID, nonce);
 
   function verified(err, user, info) {
     if (err) { return self.error(err); }

@@ -43,12 +43,20 @@ app.middleware('auth', loopback.token({
 }));
 
 var RedisStore = require('connect-redis')(session);
-app.middleware('session', session({
+const sessionOptions = {
+  cookie: {
+    expires: false,
+    secret: process.env.SESSION_SECRET,
+    secure: process.env.NODE_ENV == 'production',
+    maxAge: 360000000,
+  },
+  name: 'sid',
+  resave: false,
   store: new RedisStore({ url: process.env.REDIS_URL || 'redis://127.0.0.1:6379' }),
   secret: process.env.SESSION_SECRET,
   saveUninitialized: true,
-  resave: true,
-}));
+};
+app.middleware('session', session(sessionOptions));
 
 app.middleware('session:before', cookieParser(app.get('cookieSecret')));
 
@@ -170,6 +178,7 @@ passport.use(ethStrategy);
 app.get('/nonce',
   async function(req, res) {
     const nonce = await app.models.Account.getAddressNonce(req.query.address);
+    ethStrategy.setNonce(req.session.id, nonce);
     res.send(nonce);
   }
 );
