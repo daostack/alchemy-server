@@ -2,9 +2,21 @@
   "name": "Proposal",
   "base": "PersistedModel",
   "idInjection": true,
+  "indexes": {
+    "arcId_index": {
+      "arcId": 1
+    },
+    "daoAvatarAddress_index": {
+      "daoAvatarAddress": 1
+    },
+    "descriptionHash_index": {
+      "descriptionHash": 1
+    }
+  },
   "options": {
     "validateUpsert": true
   },
+  "replaceOnPUT": false,
   "properties": {
     "arcId": {
       "type": "string"
@@ -30,14 +42,8 @@
       "required": true
     }
   },
-  "indexes": {
-    "arcId_index": {"arcId": 1},
-    "daoAvatarAddress_index": {"daoAvatarAddress": 1},
-    "descriptionHash_index": {"descriptionHash": 1}
-  },
   "validations": [],
   "relations": {},
   "acls": [],
-  "methods": {},
-  "replaceOnPUT": false
+  "methods": {}
 }
