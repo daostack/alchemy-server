@@ -98,41 +98,6 @@ passportConfigurator.setupModels({
 for (var s in config) {
   var c = config[s];
   c.session = c.session !== false;
-
-  // After successful OAuth login let's save account data to the database
-  // TODO: need to test the account linking on staging still
-  c.loginCallback = function(req, done) {
-    return async function(err, user, identity, token) {
-      var authInfo = {
-        identity: identity,
-      };
-      if (token) {
-        authInfo.accessToken = token;
-      }
-      const profile = identity.profile;
-      const provider = identity.provider;
-      const profileUrl = provider == 'github' || provider == 'facebook' ? profile.profileUrl :
-                         (provider == 'twitter' ? 'https://twitter.com/' + profile.username : '');
-      const name = provider == 'github' || provider == 'twitter' ? profile.displayName :
-                   provider == 'facebook' ? profile._json.first_name + ' ' + profile._json.last_name : ' ';
-      var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: req.session.ethereumAccountAddress } });
-      if (!account) {
-        account = new app.models.Account();
-        account.ethereumAccountAddress = req.session.ethereumAccountAddress;
-        account.name = name;
-      }
-      account.userId = user.id;
-      account[provider + 'URL'] = profileUrl;
-      // Skip signature check because this all happening on the server with no client interaction so we dont have or need a signature
-      account.save({ skipSignatureCheck: true });
-
-      // Tell the client we are done so it can close the popup window
-      const io = req.app.get('io');
-      io.in(req.session.socketId).emit(provider, account);
-
-      done(err, user, authInfo);
-    };
-  };
   passportConfigurator.configureProvider(s, c);
 }
 
@@ -180,6 +145,43 @@ app.get('/nonce',
     const nonce = await app.models.Account.getAddressNonce(req.query.address);
     ethStrategy.setNonce(req.session.id, nonce);
     res.send(nonce);
+  }
+);
+
+app.get('/linked',
+  async function(req, res) {
+    const credentials = await req.user.credentials.findOne({ order: 'modified DESC' });
+    const profile = credentials.profile;
+    const provider = credentials.provider;
+    const profileUrl = provider == 'github' || provider == 'facebook' ? profile.profileUrl :
+                       (provider == 'twitter' ? 'https://twitter.com/' + profile.username : '');
+    const name = provider == 'github' || provider == 'twitter' ? profile.displayName :
+                 provider == 'facebook' ? profile._json.first_name + ' ' + profile._json.last_name : ' ';
+    var account = await app.models.Account.findOne({ where: { ethereumAccountAddress: req.session.ethereumAccountAddress } });
+
+    // TODO: this should never happen
+    if (!account) {
+      account = new app.models.Account();
+      account.ethereumAccountAddress = req.session.ethereumAccountAddress;
+      account.userId = req.user.id;
+    }
+    if (!account.name) {
+      account.name = name;
+    }
+    account[provider + 'URL'] = profileUrl;
+    account.save();
+
+    // Tell the client we are done so it can close the popup window
+    const io = req.app.get('io');
+    io.in(req.session.socketId).emit(provider, account);
+
+    res.send('Account linked');
+  }
+);
+
+app.get('/linkFail',
+  async function(req, res) {
+    res.send('Failed to link account for unkown reason');
   }
 );
 
