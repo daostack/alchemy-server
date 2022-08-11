@@ -28,7 +28,7 @@
     "loopback-boot": "^2.27.1",
     "loopback-component-explorer": "^5.4.0",
     "loopback-component-passport": "^3.10.0",
-    "loopback-connector-postgresql": "^3.3.2",
+    "loopback-connector-postgresql": "^5.5.1",
     "passport-facebook": "^2.1.1",
     "passport-github": "^1.1.0",
     "passport-twitter": "^1.0.4",
